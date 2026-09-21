@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Digital Slam Book</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 3D Container */
+        .container {
+            perspective: 1000px;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,255,0.5);
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+            position: relative;
+        }
+
+        .card-content { transform: translateZ(50px); }
+
+        h2 { text-align: center; color: #333; margin-bottom: 10px; }
+        
+        .progress-bar {
+            width: 100%; background: #eee; height: 8px; border-radius: 10px;
+            margin-bottom: 30px; overflow: hidden;
+        }
+        .progress {
+            height: 100%; background: #11998e; width: 10%;
+            transition: width 0.4s ease;
+        }
+
+        /* Seamless Step Transitions */
+        .step {
+            display: none;
+            animation: slideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+        }
+        .step.active { display: block; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        label { display: block; margin-bottom: 12px; font-weight: 600; font-size: 16px; color: #444; }
+        input, textarea {
+            width: 100%; padding: 15px; border-radius: 10px; border: 2px solid #e1e1e1;
+            font-size: 15px; background: #fafafa; transition: 0.3s; margin-bottom: 20px;
+        }
+        input:focus, textarea:focus {
+            outline: none; border-color: #38ef7d; box-shadow: 0 0 12px rgba(56, 239, 125, 0.3); background: #fff;
+        }
+
+        .btn-group { display: flex; justify-content: space-between; margin-top: 10px; }
+        
+        button {
+            padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; font-size: 15px;
+            cursor: pointer; transition: 0.3s; transform: translateZ(20px);
+        }
+        .btn-next { background: #11998e; color: white; width: 100%; box-shadow: 0 10px 20px rgba(17, 153, 142, 0.3); }
+        .btn-next:hover { background: #0e8076; transform: translateZ(20px) translateY(-2px); }
+        .btn-prev { background: #e1e1e1; color: #555; margin-right: 10px; display: none; }
+        .btn-prev:hover { background: #d1d1d1; }
+
+        .success-msg { text-align: center; display: none; }
+        .success-msg h3 { color: #11998e; margin-bottom: 10px; }
+
+        .admin-link {
+            position: absolute; bottom: -40px; right: 0; color: white; text-decoration: none; font-size: 14px; opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="container">
+        <div class="card" id="tiltCard">
+            <div class="card-content">
+                <h2>✨ Slam Book ✨</h2>
+                <div class="progress-bar"><div class="progress" id="progress"></div></div>
+
+                <form id="slamForm">
+                    <!-- Questions (1 to 10) -->
+                    <div class="step active">
+                        <label>1. What is your full name?</label>
+                        <input type="text" id="q1" placeholder="Enter your name">
+                    </div>
+                    <div class="step">
+                        <label>2. What nickname would you give me?</label>
+                        <input type="text" id="q2" placeholder="Your nickname for me">
+                    </div>
+                    <div class="step">
+                        <label>3. Which colour suits me?</label>
+                        <input type="text" id="q3" placeholder="e.g., Black, Blue, Red...">
+                    </div>
+                    <div class="step">
+                        <label>4. Describe me in exactly ONE word.</label>
+                        <input type="text" id="q4" placeholder="e.g., Hilarious, Loyal">
+                    </div>
+                    <div class="step">
+                        <label>5. What is our absolute best memory together?</label>
+                        <textarea id="q5" rows="3" placeholder="I'll never forget when..."></textarea>
+                    </div>
+                    <div class="step">
+                        <label>6. What was your first impression of me?</label>
+                        <textarea id="q6" rows="2" placeholder="Be honest!"></textarea>
+                    </div>
+                    <div class="step">
+                        <label>7. What do you think is my best quality?</label>
+                        <input type="text" id="q7" placeholder="Your best trait is...">
+                    </div>
+                    <div class="step">
+                        <label>8. What is my most annoying habit?</label>
+                        <input type="text" id="q8" placeholder="Don't hold back...">
+                    </div>
+                    <div class="step">
+                        <label>9. If we were in a movie, what genre would it be?</label>
+                        <input type="text" id="q9" placeholder="Comedy, Action, Horror?">
+                    </div>
+                    <div class="step">
+                        <label>10. Leave a message for my future self.</label>
+                        <textarea id="q10" rows="3" placeholder="Hey future you..."></textarea>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="btn-group" id="btnGroup">
+                        <button type="button" class="btn-prev" id="btnPrev" onclick="changeStep(-1)">Back</button>
+                        <button type="button" class="btn-next" id="btnNext" onclick="changeStep(1)">Next ➔</button>
+                    </div>
+                </form>
+
+                <!-- Success Screen -->
+                <div class="success-msg" id="successMsg">
+                    <h3>🎉 All Done!</h3>
+                    <p>Thank you for filling out my slam book. Your answers are saved!</p>
+                </div>
+            </div>
+            <a href="admin.html" class="admin-link">Admin Dashboard ➔</a>
+        </div>
+    </div>
+
+    <script>
+        // --- 3D TILT EFFECT ---
+        const card = document.getElementById('tiltCard');
+        const container = document.getElementById('container');
+        container.addEventListener('mousemove', (e) => {
+            let xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+            let yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+        container.addEventListener('mouseenter', () => card.style.transition = 'none');
+        container.addEventListener('mouseleave', () => {
+            card.style.transition = 'transform 0.5s ease';
+            card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+        });
+
+        // --- STEP-BY-STEP LOGIC ---
+        let currentStep = 0;
+        const steps = document.querySelectorAll('.step');
+        const progress = document.getElementById('progress');
+        const btnNext = document.getElementById('btnNext');
+        const btnPrev = document.getElementById('btnPrev');
+
+        function changeStep(direction) {
+            if (direction === 1) {
+                const currentInput = steps[currentStep].querySelector('input, textarea');
+                if (currentInput.value.trim() === '') {
+                    currentInput.style.borderColor = 'red';
+                    setTimeout(() => currentInput.style.borderColor = '#e1e1e1', 1000);
+                    return; 
+                }
+            }
+
+            steps[currentStep].classList.remove('active');
+            currentStep += direction;
+
+            progress.style.width = `${((currentStep + 1) / steps.length) * 100}%`;
+
+            if (currentStep >= steps.length) {
+                submitForm();
+                return;
+            }
+
+            steps[currentStep].classList.add('active');
+
+            btnPrev.style.display = currentStep === 0 ? 'none' : 'block';
+            btnNext.innerHTML = currentStep === steps.length - 1 ? 'Submit 🚀' : 'Next ➔';
+        }
+
+        // --- SUBMIT & SAVE TO LOCALSTORAGE ---
+        function submitForm() {
+            document.getElementById('slamForm').style.display = 'none';
+            document.getElementById('successMsg').style.display = 'block';
+
+            const newEntry = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                q1: document.getElementById('q1').value,
+                q2: document.getElementById('q2').value,
+                q3: document.getElementById('q3').value,
+                q4: document.getElementById('q4').value,
+                q5: document.getElementById('q5').value,
+                q6: document.getElementById('q6').value,
+                q7: document.getElementById('q7').value,
+                q8: document.getElementById('q8').value,
+                q9: document.getElementById('q9').value,
+                q10: document.getElementById('q10').value,
+            };
+
+            let entries = JSON.parse(localStorage.getItem('slamData2024')) || [];
+            entries.push(newEntry);
+            localStorage.setItem('slamData2024', JSON.stringify(entries));
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && currentStep < steps.length) {
+                e.preventDefault();
+                changeStep(1);
+            }
+        });
+    </script>
+</body>
+</html>
